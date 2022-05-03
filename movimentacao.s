@@ -125,7 +125,7 @@ COLIDE_HORIZONTAL_RIGHT:
     add t0 t0 a3 # valor de incremento
 
     # adicionar largura do sprite
-    li t1 24
+    li t1 40
     add t0 t0 t1
 
     # adicionar camera
@@ -150,12 +150,12 @@ COLIDE_HORIZONTAL_RIGHT:
 li a0 0
 ret
 COLIDED_H:
-    mv a0 t0
-    li a7 1
-    ecall
-    la a0 SPACE
-    li a7 4
-    ecall
+    # mv a0 t0
+    # li a7 1
+    # ecall
+    # la a0 SPACE
+    # li a7 4
+    # ecall
 
     li a0 1
     ret
@@ -166,7 +166,7 @@ COLIDE_HORIZONTAL_LEFT:
 
     li t1 48
     add t0 t0 t1 # altura do sprite
-    addi t0 t0 -1
+    addi t0 t0 -8
 
     lw t1 0(a1) # len(x) do mapa
     mul t0 t0 t1
@@ -191,8 +191,6 @@ COLIDE_HORIZONTAL_LEFT:
     li t4 7
     beq t0 t4 COLIDED_H
     #bgtz t0 COLIDED_H
-
-
 
 li a0 0
 ret

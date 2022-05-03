@@ -1,10 +1,47 @@
 .data
+# ---------------------
+# Registradores Salvos
+# ---------------------
+# s0 -> PLAYER_SPRITE
+# s1 -> PLAYER_FRAME
+# s2 -> ACTUAL MAP
+# s3 ->
+
+# --------------
+# State Machine
+# --------------
+# 0 -> idle
+# 1 -> attack
+# 2 -> walking
+# 3 -> down
+STATE_MACHINE: 0
+MAX_FRAMES_STATE: 8, 4, 16, 11
+
+# ------------
 # Player data
+# ------------
 PLAYER_XY: .word 144, 100
 PLAYER_XY_ACL: 8,4
 
+# 0 -> atual; 4 -> máximo
+PLAYER_HP: 70,70
+
 # 1 = left, 0 = right
 PLAYER_DIR: .word 0
+PLAYER_IDLE_FRAMES: 0
+
+
+# player_attack duration
+ATTACK_FRAMES: 0
+
+# weapons
+# 0 -> unnarmed
+
+# ==========
+# Inventory
+# ==========
+# in order: hand1 (0), hand2 (4), head (8), body (12), bonus 1 (16), 2 (20) and 3 (24)
+INVENTORY: 0, 0, 0, 0, 0, 0, 0
 
 # Jump data
 Y_SPEED: .float 0.0
@@ -26,6 +63,7 @@ INPUT: 0,0 # input and last input
 .eqv s 115
 .eqv d 100
 .eqv space 32
+.eqv j_key 106
 
 # BreakLine debug
 
@@ -33,6 +71,11 @@ NUM_LOOPS: 4
 BL: .string "\n"
 SPACE: .string " "
 .text
+# -----------------
+# Game Start Setup
+# -----------------
+la s0 alucard_walk # carregar o valor de "sprite idle"
+li s1 0
 # --------------------------------------
 # Dividir o game loop em menu e in-game
 # --------------------------------------
@@ -43,6 +86,11 @@ SPACE: .string " "
 #     li a3 960
 # call RENDER
 GAME_LOOP:
+    # sleep?
+    li a7 32
+    li a0 10
+    ecall    
+
     # zerar xlr8 horizontal
     la t0 PLAYER_XY_ACL
     sw zero 0(t0)
@@ -77,6 +125,15 @@ GAME_LOOP:
     lw t1 0(t0)
     sw t1 4(t0) # Passa input anterior para last_input
     sw zero 0(t0) # zera input
+
+    # antes de pular o input
+    # resetar frame do personagem
+    la t0 STATE_MACHINE
+    lw t1 0(t0)
+    bnez t1 SET_STATE_IDLE
+        la s0 alucard_idle
+    SET_STATE_IDLE:
+        sw zero 0(t0)
     j END_CHECK_INPUT
 
     SET_INPUT:
@@ -88,8 +145,22 @@ GAME_LOOP:
     # j INPUT_MANAGER
     # AFTER_INPUT
 
+    la t0 STATE_MACHINE
+    li t1 3
+    bne t0 t1 SKIP_STATE_DOWN_CHECK 
+        call STATE_DOWN
+    SKIP_STATE_DOWN_CHECK:
+
     j CHECK_INPUT
     END_CHECK_INPUT:
+
+    # check if player is in the state "attack"
+    la t0 STATE_MACHINE
+    lw t0 0(t0)
+    li t1 1
+    beq t0 t1 STATE_ATTACK
+
+    AFTER_STATE_ATTACK:
 
     # verificar colisao e movimentar personagem
     # o personagem vai sempre ser acelerado em sua x_speed e em sua y_speed
@@ -99,204 +170,52 @@ GAME_LOOP:
     #j ENEMY_PROCEDURE
     AFTER_ENEMY_PROCEDURE:
 
+    # Idle Animation
+    # la t0 STATE_MACHINE
+    # lw t0 0(t0)
+    # li t1 0
+    # bne t0 t1 SKIP_ADD_FRAME
+
+    # la t0 MAX_FRAMES_STATE
+    # lw t0 0(t0)
+
+    # bge s1 t0 RESET_ADD_FRAME
+
+    # li a7 42
+    # li a1 10
+    # ecall
+    # li t0 5
+    # bge a0 t0 SKIP_ADD_FRAME
+    # addi s1 s1 1
+    # j SKIP_ADD_FRAME
+    # RESET_ADD_FRAME:
+    # li s1 0
+    # SKIP_ADD_FRAME:
+
+    li a7 42
+    li a1 20
+    ecall
+    li t0 10
+    bgt a0 t0 MOV_ENEMY_LEFT
+
+    la t0 ENEMY_XY
+    lw t1 0(t0)
+    addi t1 t1 1
+    sw t1 0(t0)
+    j SKIP_ENEMY_MOV
+
+    MOV_ENEMY_LEFT:
+    la t0 ENEMY_XY
+    lw t1 0(t0)
+    addi t1 t1 1
+    sw t1 0(t0)
+
+    SKIP_ENEMY_MOV:
+
     j RENDER_PROCCESS
 
 j GAME_LOOP
 
-# WIP - ao checar o input, deveria ser preparado tudo para posteriormente chamar a colisão + o movimento em x e em y
-CHECK_INPUT:
-    la a0 INPUT
-    lw t0, 0(a0)
-    li t1 space
-    beq t0 t1 JUMP_KEY_PRESSED
-    li t1 w
-    bne t0 t1 NEXT_A
-    
-    JUMP_KEY_PRESSED:
-
-    # check if char's on the ground
-    la t4 PLAYER_XY
-    lw t5 4(t4)
-    li t4 152
-
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    li a3 1
-    call COLIDE_VERTICAL
-    li t4 1
-    mv t5 a0
-
-    bne t5 t4 END_CHECK_INPUT
-
-    la t0 JUMP_DIR
-    li t1 1
-    sw t1 4(t0) # set jumping = true
-
-    # define jump property
-    # a jump can be null, left or right. It's defined when the player presses the jump key
-    # and only changes when it touchs the ground
-    la t0 JUMP_DIR # reset jump kind
-    sw zero 0(t0)
-
-    la t0 INPUT
-    lw t1 4(t0)
-    li t2 a
-    bne t1 t2 CHECK_RIGHT_JUMP
-    la t0 JUMP_DIR
-    li t2 1
-    sw t2 0(t0) # if last_input == a, JUMP_DIR = 1
-    CHECK_RIGHT_JUMP:
-    la t0 INPUT
-    lw t1 4(t0)
-    li t2 d
-    bne t1 t2 NORMAL_JUMP
-    la t0 JUMP_DIR
-    li t2 2
-    sw t2 0(t0) # if last_input == d, JUMP_DIR = 2
-
-NORMAL_JUMP:
-    la t4 PLAYER_XY
-    lw t5 4(t4)
-    addi t5 t5 -4
-    sw t5 4(t4)
-
-    # carrega o valor de jump force
-    la t0 JUMP_FORCE
-    lw t0, 0(t0)
-    fcvt.s.w ft0 t0 # convert jump_force to float
-    fmv.s.x ft0 t0 # convert jump_force to x_speed
-
-    # carrega o valor de y_speed
-    la t1 Y_SPEED
-    flw ft1 0(t1)
-
-    # adiciona o valor de jump force em y_speed
-    fadd.s ft1 ft1 ft0
-    fsw ft1 0(t1)
-
-    NEXT_A:
-
-    # check if char's on the ground
-    la t4 PLAYER_XY
-    lw t5 4(t4)
-    li t4 152
-
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    li a3 1
-    call COLIDE_VERTICAL
-    li t4 1
-    mv t5 a0
-
-    bne t5 t4 END_CHECK_INPUT
-
-    la a0 INPUT
-    lw t0, 0(a0)
-    li t1 a
-    bne t0, t1, NEXT_D
-
-    # checar se colide horizontal esquerda <-
-    # checar se o player colide horizontalmente
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    la a2 CAMERA_XY
-    li a3 -1
-    call COLIDE_HORIZONTAL_LEFT
-    li t4 1
-    mv t5 a0
-    # se colidir -> checar colisão do movimento parcial
-    bge t5 t4 SKIP_INPUT
-
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    la a2 CAMERA_XY
-    li a3 -16
-    call COLIDE_HORIZONTAL_LEFT
-    li t4 1
-    mv t5 a0
-
-    # se colidir no movimento parcial -> aplicar movimento parcial
-    # caso contrário: aplicar movimento normal
-    beqz t5 PARTIAL_XL_MOVEMENT
-
-    la t0 CAMERA_XY
-    lw a2 0(t0)
-	addi a2 a2 -1
-    sw a2 0(t0)
-
-    j AFTER_HL_MOVEMENT
-
-    PARTIAL_XL_MOVEMENT:
-        la t0 CAMERA_XY
-        lw a2 0(t0)
-        addi a2 a2 -16
-        sw a2 0(t0)
-
-
-    AFTER_HL_MOVEMENT:
-
-    NEXT_D:
-
-    # check if char's on the ground
-    la t4 PLAYER_XY
-    lw t5 4(t4)
-    li t4 152
-
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    li a3 1
-    call COLIDE_VERTICAL
-    li t4 1
-    mv t5 a0
-
-    bne t5 t4 END_CHECK_INPUT
-
-    la a0 INPUT
-    lw t0, 0(a0)
-    li t1 d
-    bne t0, t1, SKIP_INPUT
-
-    # checar se o player colide horizontalmente
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    la a2 CAMERA_XY
-    li a3 1
-    call COLIDE_HORIZONTAL_RIGHT
-    li t4 1
-    mv t5 a0
-    # se colidir -> checar colisão do movimento parcial
-    bge t5 t4 SKIP_INPUT
-
-    la a0 PLAYER_XY
-    la a1 entrance_col
-    la a2 CAMERA_XY
-    li a3 16
-    call COLIDE_HORIZONTAL_RIGHT
-    li t4 1
-    mv t5 a0
-
-    # se colidir no movimento parcial -> aplicar movimento parcial
-    # caso contrário: aplicar movimento normal
-    beqz t5 PARTIAL_XR_MOVEMENT
-
-    la t0 CAMERA_XY
-    lw a2 0(t0)
-	addi a2 a2 1
-    sw a2 0(t0)
-
-    j AFTER_HR_MOVEMENT
-
-    PARTIAL_XR_MOVEMENT:
-        la t0 CAMERA_XY
-        lw a2 0(t0)
-        addi a2 a2 16
-        sw a2 0(t0)
-
-
-    AFTER_HR_MOVEMENT:
-
-    SKIP_INPUT:
-    j  END_CHECK_INPUT
 # O procedimento de renderização deve checar todos os objetos que podem aparecer na tela e printar de uma vez.
 # começando sempre pelo mapa, depois pelos inimigos e por fim pelo personagem
 
@@ -404,78 +323,11 @@ PARTIAL_Y_MOVEMENT:
     j END_GRAVITY
 
 
-ENEMY_PROCEDURE:
-# Create the logic to find if enemy's on the screen (and how many pixels of it's on the screen)
-# and print it
-CHECK_IF_ENEMY_ON_SCREEN:
-    # conferir se x do inimigo está entre x_camera e x_camera-320
-    la t0 ENEMY_XY
-    lw t1 0(t0)
-    lw t2 4(t0)
-    
-    la t3 CAMERA_XY
-    lw t3 0(t3)
-    blt t1 t3 SKIP_ENEMY_RENDER
-    addi t3 t3 320
-    bgt t1 t3 SKIP_ENEMY_RENDER
 
-    # converter a posição do inimigo para uma posição na tela e renderizar
-    la a0 teste_enemy
-    la t0 ENEMY_XY
-    lw t1 0(t0)
-    lw t2 4(t0)
-    li t3 320
-    mul t3 t3 t2
-    add a1 t3 t1
-    li a2 0
-    li a3 24
-    la a4 camera
-    addi a4 a4 8
-    call RENDER_ON_CAMERA
-    SKIP_ENEMY_RENDER:
-    j END_CHECK_IF_ENEMY_ON_SCREEN
-    j AFTER_ENEMY_PROCEDURE
-
-RENDER_PROCCESS:
-    # renderizar mapa
-    
-    la a0 entrance_col
-	li a1 0
-    la a2 CAMERA_XY
-    lw a2, 0(a2)
-    li a3 960
-    la a4 camera
-    addi a4 a4 8
-    call RENDER_ON_CAMERA
-
-    # ...
-    # Objects
-    # ...
-
-
-    # Player
-    la a0 RichterBelmont
-    la t0 PLAYER_XY
-    lw t1 0(t0)
-    lw t2 4(t0)
-    li t3 320
-    mul t3 t3 t2
-    add a1 t3 t1
-    li a2 0
-    li a3 24
-    la a4 camera
-    addi a4 a4 8
-    call RENDER_ON_CAMERA
-
-    j CHECK_IF_ENEMY_ON_SCREEN
-    END_CHECK_IF_ENEMY_ON_SCREEN:
-
-    la a0 camera
-	li a1 0
-    li a2 0
-    li a3 320
-    call RENDER
 
 j GAME_LOOP
 .include "./render.s"
 .include "./movimentacao.s"
+.include "./state_machine.s"
+.include "./input_handler.s"
+.include "./enemy.s"
