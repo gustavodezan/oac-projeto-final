@@ -1,7 +1,18 @@
+.data
+ENEMY_XY: .word 320, 120
+ENEMY_IS_ALIVE: 1
+.text
+
 ENEMY_PROCEDURE:
 # Create the logic to find if enemy's on the screen (and how many pixels of it's on the screen)
 # and print it
+
 CHECK_IF_ENEMY_ON_SCREEN:
+    # check if enemy is alive
+    la t0 ENEMY_IS_ALIVE
+    lw t0 0(t0)
+    beqz t0 SKIP_ENEMY_RENDER
+
     # conferir se x do inimigo está entre x_camera e x_camera-320
     la t0 ENEMY_XY
     lw t1 0(t0)
@@ -26,7 +37,7 @@ CHECK_IF_ENEMY_ON_SCREEN:
     la a4 camera
     addi a4 a4 8
 
-    la a0 teste_enemy
+    la a0 RichterBelmont
     la t0 ENEMY_XY
     lw t1 0(t0)
     lw t2 4(t0)
@@ -46,3 +57,5 @@ CHECK_IF_ENEMY_ON_SCREEN:
     SKIP_ENEMY_RENDER:
     j END_CHECK_IF_ENEMY_ON_SCREEN
     j AFTER_ENEMY_PROCEDURE
+
+j GAME_LOOP

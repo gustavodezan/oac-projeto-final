@@ -1,9 +1,9 @@
 # WIP - ao checar o input, deveria ser preparado tudo para posteriormente chamar a colisão + o movimento em x e em y
 CHECK_INPUT:
     # check if !STATE_ATTACK
-    la t0 STATE_MACHINE
-    lw t0 0(t0)
+    mv t0 s3
     li t1 1
+
     beq t1 t0 SKIP_INPUT
 
     # check if input 
@@ -16,16 +16,11 @@ CHECK_INPUT:
     # 2 - trocar o sprite para o da arma e rodar a animação
     # 3 - procurar por inimigos no alcance da arma para hitar
     
-    # state attack:
-    la t0 STATE_MACHINE
-    li t1 1
-    sw t1 0(t0)
+    la s0 alucard_punch
+    li s1 -1 # reset attack frames
+    li s3 1 # state attack
     
-    # reset attack frames:
-    la t0 ATTACK_FRAMES
-    sw zero 0(t0)
-
-    j STATE_ATTACK
+    #j STATE_ATTACK
 
     JUMP_INPUT:
     la a0 INPUT
@@ -254,13 +249,13 @@ NORMAL_JUMP:
     # procedimento de abaixar
     la s0 alucard_down
     li t0 11
-    bge s1 t0 SKIP_INPUT
+    #bge s1 t0 SKIP_INPUT
+    li s1 -1
+    li s3 3
 
-    la t0 STATE_MACHINE
-    li t1 3
-    sw t1 0(t0) 
-
-    call STATE_DOWN
+    #call STATE_DOWN
 
     SKIP_INPUT:
     j  END_CHECK_INPUT
+
+j GAME_LOOP

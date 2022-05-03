@@ -194,3 +194,6 @@ COLIDE_HORIZONTAL_LEFT:
 
 li a0 0
 ret
+
+
+j GAME_LOOP

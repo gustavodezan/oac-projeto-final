@@ -203,6 +203,7 @@ RENDER_PROCCESS:
 
 .data
 .include "./assets/entrance.s"
+.include "./assets/prologue.s"
 .include "./assets/RichterBelmont.s"
 .include "./assets/teste_enemy.s"
 .include "./assets/alucard_walk.s"
