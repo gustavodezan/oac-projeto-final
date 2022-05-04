@@ -7,7 +7,9 @@ Y_MOVEMENT:
 
     # checar se ele não está colidindo com o chão
     la a0 PLAYER_XY
-    la a1 entrance_col
+    #la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     li a3 1
     call COLIDE_VERTICAL
     li t0 1
@@ -25,7 +27,9 @@ Y_MOVEMENT:
     add t3 t3 t2
 
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     mv a3 t2
     call COLIDE_VERTICAL
     li t4 1
@@ -89,7 +93,9 @@ END_GRAVITY:
 PARTIAL_Y_MOVEMENT:
     # call colide
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     li a3 0
     call COLIDE_VERTICAL
     li t2 1

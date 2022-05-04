@@ -151,10 +151,6 @@ STATE_ATTACK:
 
     CHECK_HIT_LEFT_X:
         sub t2 zero t2 # deixa o range negativo
-        mv a0 t2
-        li a7 1
-        ecall
-
         mv t3 t1
         la t4 PLAYER_XY
         lw t4 0(t4) # x do player

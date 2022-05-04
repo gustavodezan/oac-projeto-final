@@ -57,6 +57,12 @@ GVT: .float 0.5
     JUMP_DIR: .word 0,0 # second value -> jumping/not jumping
 
 CAMERA_XY: 0,0
+
+# Maps
+ACTUAL_MAP: 0, 2 # 4(ACUTAL_MAP) -> total num maps
+MAPS: entrance, entrance_pedra_top
+MAPS_COL: entrance_col, entrance_pedra_top_col
+
 # Input
 INPUT: 0,0 # input and last input
 .eqv MMIO_add 0xff200004 # Data (ASCII value)
@@ -78,7 +84,7 @@ SPACE: .string " "
 # -----------------
 # Game Start Setup
 # -----------------
-la s0 alucard_walk # carregar o valor de "sprite idle"
+la s0 alucard_idle # carregar o valor de "sprite idle"
 li s1 0
 li s3 0
 li s4 -6
@@ -229,3 +235,4 @@ j GAME_LOOP
 .include "./input_handler.s"
 .include "./enemy.s"
 .include "./gravity.s"
+.include "./map_handler.s"

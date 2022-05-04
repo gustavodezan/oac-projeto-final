@@ -40,7 +40,9 @@ CHECK_INPUT:
     li t4 152
 
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     li a3 1
     call COLIDE_VERTICAL
     li t4 1
@@ -101,7 +103,9 @@ NORMAL_JUMP:
     li t4 152
 
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     li a3 1
     call COLIDE_VERTICAL
     li t4 1
@@ -121,7 +125,9 @@ NORMAL_JUMP:
     # checar se colide horizontal esquerda <-
     # checar se o player colide horizontalmente
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     la a2 CAMERA_XY
     li a3 -1
     call COLIDE_HORIZONTAL_LEFT
@@ -143,7 +149,9 @@ NORMAL_JUMP:
     SKIP_FRAME_RESET_WALK_LEFT:
 
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     la a2 CAMERA_XY
     li a3 -16
     call COLIDE_HORIZONTAL_LEFT
@@ -176,7 +184,9 @@ NORMAL_JUMP:
     li t4 152
 
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     li a3 1
     call COLIDE_VERTICAL
     li t4 1
@@ -194,7 +204,9 @@ NORMAL_JUMP:
 
     # checar se o player colide horizontalmente
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+
     la a2 CAMERA_XY
     li a3 1
     call COLIDE_HORIZONTAL_RIGHT
@@ -216,7 +228,9 @@ NORMAL_JUMP:
     SKIP_FRAME_RESET_WALK_DIR:
 
     la a0 PLAYER_XY
-    la a1 entrance_col
+    # la a1 entrance_col
+    call MAP_COL_SELECTOR # returns in a1 map_col
+    
     la a2 CAMERA_XY
     li a3 16
     call COLIDE_HORIZONTAL_RIGHT

@@ -14,35 +14,6 @@
 # pulo: quando pular, ele deve manter a aceleração horizontal durante o período de aceleração vertical
 # força = jump_force
 
-
-# COLLIDE_VERTICAL:
-    # # start checking left coll
-    # # la a0 PLAYER_XY
-    # # la a1 map_collision
-    # la a2 CAMERA_XY
-
-    # # position obj in camera x and add 144 to it
-    # lw t0 0(a2)
-    # li t1 144
-    # add t4 t0 t1
-
-    # # get y position of player
-    # lw t0 4(a0)
-    # li t1 2008
-    # mul t0 t0 t1
-    # add t0 t0 t4 # final dis
-
-    # # add the value to colision map
-    # li t1 8
-    # add t0 t0 t1
-    # add a1 a1 t0
-    # lw t3 0(a1)
-    
-    # li t6 943208504
-    # beq t3 t6 COLIDED_V
-
-    # # check right coll
-
 # ---------------------------
 # Colisao
 # ---------------------------
@@ -77,9 +48,9 @@ COLIDE_VERTICAL:
 
     # add to map vector
     li t2 8
-    add a1 a1 t2
-    add a1 a1 t0
-    lb t0 0(a1)
+    add t3 a1 t2
+    add t3 t3 t0
+    lb t0 0(t3)
 
     li t4 943208504
     li t4 56
@@ -88,17 +59,130 @@ COLIDE_VERTICAL:
     beq t0 t4 COLIDED_V
     bgtz t0 COLIDED_V
 
-    # mv a0 t0
-    # li a7 1
-    # ecall
-    # la a0 SPACE
-    # li a7 4
-    # ecall
+    # se não colidir no pixel mais à esquerda, colidir no pixel à direita
+    lw t0 4(a0) # pos y do player
+    add t0 t0 a3 # valor de incremento
+
+    li t1 1
+    sub t0 t0 t1
+
+    li t1 48
+    add t0 t0 t1
+
+    lw t1 0(a1) # len(x) do mapa
+    mul t0 t0 t1
+
+    li t1 144
+    add t0 t0 t1
+    li t3 48
+    add t0 t0 t3
+
+    # add to map vector
+    li t2 8
+    add t3 a1 t2
+    add t3 t3 t0
+    lb t0 0(t3)
+
+    li t4 943208504
+    li t4 56
+    beq t0 t4 COLIDED_V
+    li t4 7
+    beq t0 t4 COLIDED_V
+    bgtz t0 COLIDED_V
+
 
 li a0 0
 ret
-COLIDED_V:
-    
+COLIDED_V: 
+    li t1 55
+    bne t1 t0 CHECK_NEXT_COL_TYPE_Y
+        j NEXT_MAP
+    CHECK_NEXT_COL_TYPE_Y:
+    li a0 1
+    ret
+
+# mesmo procedimento que do vertical comum, mas quando colide com 56 y_speed vira 0
+COLIDE_VERTICAL_UP:
+    # la a0 PLAYER_XY
+    lw t0 4(a0) # pos y do player
+    add t0 t0 a3 # valor de incremento
+
+    li t1 1
+    sub t0 t0 t1
+
+    li t1 48
+    #add t0 t0 t1
+
+    lw t1 0(a1) # len(x) do mapa
+    mul t0 t0 t1
+
+    li t1 144
+    add t0 t0 t1
+
+    # add to map vector
+    li t2 8
+    add t3 a1 t2
+    add t3 t3 t0
+    lb t0 0(t3)
+
+    li t4 943208504
+    li t4 56
+    beq t0 t4 COLIDED_V_UP
+    li t4 7
+    beq t0 t4 COLIDED_V_UP
+    bgtz t0 COLIDED_V_UP
+
+    # se não colidir no pixel mais à esquerda, colidir no pixel à direita
+    lw t0 4(a0) # pos y do player
+    add t0 t0 a3 # valor de incremento
+
+    li t1 1
+    sub t0 t0 t1
+
+    li t1 48
+    #add t0 t0 t1
+
+    lw t1 0(a1) # len(x) do mapa
+    mul t0 t0 t1
+
+    li t1 144
+    add t0 t0 t1
+    li t3 48
+    add t0 t0 t3
+
+    # add to map vector
+    li t2 8
+    add t3 a1 t2
+    add t3 t3 t0
+    lb t0 0(t3)
+
+    li t4 943208504
+    li t4 56
+    beq t0 t4 COLIDED_V_UP
+    li t4 7
+    beq t0 t4 COLIDED_V_UP
+    bgtz t0 COLIDED_V_UP
+
+
+li a0 0
+ret
+COLIDED_V_UP:
+    mv a0 t0
+    li a7 1
+    ecall
+    la a0 SPACE
+    li a7 4
+    ecall
+
+    li t1 55
+    bne t1 t0 CHECK_NEXT_COL_TYPE_Y
+        j NEXT_MAP
+    CHECK_NEXT_COL_TYPE_Y:
+
+    la t0 Y_SPEED
+    fmv.s.x ft0 zero
+    fsw ft0 0(t0)
+
     li a0 1
     ret
 

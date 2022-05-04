@@ -147,7 +147,8 @@ IS_ON_CAMERA:
 RENDER_PROCCESS:
     # renderizar mapa
     
-    la a0 entrance
+    #la a0 entrance
+	call MAP_SELECTOR # returns in a0 map and in a1 map_col
 	li a1 0
     la a2 CAMERA_XY
     lw a2, 0(a2)
