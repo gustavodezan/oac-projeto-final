@@ -27,6 +27,8 @@ CHECK_INPUT:
     lw t0, 0(a0)
     li t1 space
     beq t0 t1 JUMP_KEY_PRESSED
+    li t1 k
+    beq t0 t1 JUMP_KEY_PRESSED
     li t1 w
     bne t0 t1 NEXT_A
     

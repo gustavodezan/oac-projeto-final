@@ -65,26 +65,52 @@ STATE_ATTACK:
     la t0 INVENTORY
     lw t0 0(t0)
     beqz t0 SET_SPRITE_UNNARMED
+    li t1 9
+    blt t0 t1 SET_SPRITE_SWORD
 
     SET_SPRITE_UNNARMED:
-       la s0 alucard_punch
-
         # State attack
         # sprite handle
         # dentro do state será checada a colisão com os inimigos
-        la s0 alucard_punch
+        la s0 alucard_punch#alucard_punch
         bge s1 a2 SKIP_ATK_FRAME
         addi s1 s1 1
+    j HIT_ENEMIES
 
+    SET_SPRITE_SWORD:
+        la s0 alucard_hit_weapon#alucard_punch
+        la a2 MAX_FRAMES_STATE
+        addi a2 a2 16
+        lw a2 0(a2)
+        bge s1 a2 SKIP_ATK_FRAME
+        addi s1 s1 1 
+    j HIT_ENEMIES
+
+    HIT_ENEMIES:
+    # HIT LOOP
+    li t6 0 # contador de inimigos
+    la a3 NUM_ENEMIES
+    lw a3 0(a3)
+
+    ENEMY_HIT_LOOP:
     # Check if theres an enemy to hit
     # considering the hit box of the attk
+
+    # a hitbox (rectangle) can be described with two points:
+    # top left and bottom right
+    # so it's needed to check if the rectagle
+    # l1/r1 overlaps l2/r2
 
     # temp -> utilizar a o sprite inteiro
     # em y: enemy_y and enemy_y + len(enemy_y) -> with cam y
     # em x: enemy_x and enemy_x + len(enemy_x) -> with map x
     la t0 ENEMY_XY
-    lw t1 0(t0)
-    lw t2 4(t0)
+    # deslocar ponteiro de inimigo
+    slli t1 t6 3
+    add t0 t0 t1
+
+    lw t1 0(t0) # l1.x
+    lw t2 4(t0) # l1.y
 
     # la t3 CAMERA_XY
     # lw t3 0(t3)
@@ -103,6 +129,7 @@ STATE_ATTACK:
 
     CHECK_HIT_Y:
     # se o inimigo estiver no mesmo x que o personagem, checar se ele stá no mesmo y
+    lw t2 4(t0)
     mv t3 t2
     la t4 PLAYER_XY
     lw t5 4(t4)
@@ -112,7 +139,33 @@ STATE_ATTACK:
     bge t3 t5 KILL_ENEMY
     j LET_IT_ALIVE
     KILL_ENEMY:
+        # causar dano
+        la t0 ENEMY_HP
+        slli t1 t6 2
+        add t0 t0 t1
+        lw t2 0(t0)
+        ble t2 zero LET_IT_ALIVE
+
+        # add enemy to hurt list and skip if its already hurt
+        # remember to reset that list after the state_atack
+        la t2 ENEMY_HURT
+        slli t1 t6 2
+        add t2 t2 t1
+        lw t3 0(t2)
+        li t1 1
+        sw t1 0(t2)
+        bnez t3 LET_IT_ALIVE
+
+        lw t1 0(t0)
+        add t1 t1 s4 # causar dano ao hp do inimigo
+        sw t1 0(t0)
+        bgt t1 zero LET_IT_ALIVE
+
+        # se a vida do inimigo chegar à 0 -> mata-lo
         la t0 ENEMY_IS_ALIVE
+        slli t1 t6 2
+        add t0 t0 t1
+
         lw t1 0(t0)
         beqz t1 LET_IT_ALIVE
 
@@ -120,12 +173,28 @@ STATE_ATTACK:
 
     LET_IT_ALIVE:
 
+    addi t6 t6 1
+    blt t6 a3 ENEMY_HIT_LOOP
+
     ret
 
     SKIP_ATK_FRAME:
         la s0 alucard_idle
         li s1 0 # reseta o valor do sprite
         li s3 0 # volta para o state idle
+
+        # reset enemy_hurt vector
+        la t0 NUM_ENEMIES
+        lw t0 0(t0)
+        li t1 0
+        la t3 ENEMY_HURT
+        RESET_ENEMY_HURT:
+            slli t2 t1 2
+            add t3 t3 t2
+            sw zero 0(t3)
+
+            addi t1 t1 1
+        blt t1 t0 RESET_ENEMY_HURT
         #j AFTER_STATE_FREE
     ret
 

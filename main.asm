@@ -6,6 +6,7 @@
 # s1 -> PLAYER_FRAME
 # s2 -> ACTUAL MAP
 # s3 -> STATE
+# s4 -> dano da arma atual
 
 # --------------
 # State Machine
@@ -14,8 +15,10 @@
 # 1 -> attack
 # 2 -> walking
 # 3 -> down
+# 4 -> sword
 # STATE_MACHINE: 0
-MAX_FRAMES_STATE: 8, 4, 16, 10
+MAX_FRAMES_STATE: 8, 4, 16, 10, 8
+# 8, 4, 16, 10
 
 # ------------
 # Player data
@@ -36,12 +39,14 @@ ATTACK_FRAMES: 0
 
 # weapons
 # 0 -> unnarmed
-
+# 1 -> alucard_sword
+DAMAGE: -6, -20
+WEAPON_RANGE: 16, 48
 # ==========
 # Inventory
 # ==========
 # in order: hand1 (0), hand2 (4), head (8), body (12), bonus 1 (16), 2 (20) and 3 (24)
-INVENTORY: 0, 0, 0, 0, 0, 0, 0
+INVENTORY: 1, 0, 0, 0, 0, 0, 0
 
 # Jump data
 Y_SPEED: .float 0.0
@@ -61,6 +66,7 @@ INPUT: 0,0 # input and last input
 .eqv s 115
 .eqv d 100
 .eqv space 32
+.eqv k 107
 .eqv j_key 106
 
 # BreakLine debug
@@ -75,11 +81,12 @@ SPACE: .string " "
 la s0 alucard_walk # carregar o valor de "sprite idle"
 li s1 0
 li s3 0
+li s4 -6
 # --------------------------------------
 # Dividir o game loop em menu e in-game
 # --------------------------------------
 #     la a0 prologue
-# 	li a1 0
+# 	  li a1 0
 #     la a2 CAMERA_XY
 #     lw a2, 0(a2)
 #     li a3 960

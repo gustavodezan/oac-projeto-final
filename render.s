@@ -91,19 +91,19 @@ RENDER_ON_CAMERA_INVERT:
 	lw t0 0(a0) # x da imagem
  	lw t1 4(a0) # y
 	#sub t0 t0 a3 # x da imagem - num pixeis em x de cada sprite -> valor para pular no arquivo da imagem
-	sub t0 t0 t1 # sub y da imagem de x
+	sub t0 t0 a3 # sub x da imagem de x
 	
 	mul t6 t1 a3 # area com base no tamanho do sprite
 	addi a0 a0 8
 
-	add a0 a0 t1 # pula para o final do sprite
+	add a0 a0 a3 # pula para o final do sprite
 
 	add a0 a0 a2
 	li t3 0
 	li t4 0
 	mv t2 a4
 	add t2 t2 a1
-	add t2 t2 t1
+	add t2 t2 a3 # add em t2 o x do sprite
 	li a5 -57 # valor do transparente
 	# adicionar procedimento que pula as linhas e colunas de pixeis que estiverem fora da tela
 
@@ -160,8 +160,48 @@ RENDER_PROCCESS:
     # ...
     # Objects
     # ...
-	j CHECK_IF_ENEMY_ON_SCREEN
+	j ENEMY_PROCEDURE
     END_CHECK_IF_ENEMY_ON_SCREEN:
+
+	# weapon
+	# checar se esta com a espada equipada
+	la t0 INVENTORY
+	lw t0 0(t0) # conferir o que está equipado na mão 1
+	li t1 1
+	bne t0 t1 AFTER_WEAPON_RENDER
+
+	# checar se esta no frame correto
+	li t0 1
+	bne t0 s3 AFTER_WEAPON_RENDER
+	li t1 2
+	bgt s1 t1 AFTER_WEAPON_RENDER
+	li t1 0
+	blt s1 t1 AFTER_WEAPON_RENDER
+	la a0 alucard_sword
+	li a1 44000
+    li a2 80
+	addi t0 s1 0
+	mul a2 a2 t0
+    li a3 80
+    la a4 camera
+    addi a4 a4 8
+
+	la t0 PLAYER_DIR
+    lw t0 0(t0)
+
+    # if player dir == 0 -> render normal, else render invertido
+    bnez t0 RENDER_WEAPON_INVERT
+    call RENDER_ON_CAMERA
+    j AFTER_WEAPON_RENDER
+    RENDER_WEAPON_INVERT:
+	# sei la... resolveu :)
+	li a1 46560
+	addi a1 a1 -56
+	li a2 80
+	addi t0 s1 -1
+	mul a2 a2 t0
+    call RENDER_ON_CAMERA_INVERT
+    AFTER_WEAPON_RENDER:
 
     # Player
     mv a0 s0
@@ -204,12 +244,14 @@ RENDER_PROCCESS:
 .data
 .include "./assets/entrance.s"
 .include "./assets/prologue.s"
+.include "./assets/alucard_hit_weapon.s"
 .include "./assets/RichterBelmont.s"
 .include "./assets/teste_enemy.s"
 .include "./assets/alucard_walk.s"
 .include "./assets/alucard_punch.s"
 .include "./assets/alucard_idle.s"
 .include "./assets/alucard_down.s"
+.include "./assets/alucard_sword.s"
 
 # precisa ficar em último -> não sei o porquê :)
 .include "./assets/camera.s"
