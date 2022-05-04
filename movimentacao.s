@@ -1,6 +1,7 @@
 .data
 .include "./assets/teste_mapa.s"
 .include "./assets/entrance_col.s"
+.include "./assets/entrance_pedra_top_col.s"
 .text
 # lógica de movimentação:
 

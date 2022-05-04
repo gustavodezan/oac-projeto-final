@@ -115,28 +115,79 @@ STATE_ATTACK:
     # la t3 CAMERA_XY
     # lw t3 0(t3)
     # addi t3 t3 144 # adicionar no y da camera a posição inicial do personagem
+    # adicionar em x o valor de len(weapon_x)
     CHECK_HIT_X:
-    mv t3 t1
-    la t4 PLAYER_XY
-    lw t4 0(t4)
-    # checar se o inimigo está no mesmo x que o personagem
-    la t5 CAMERA_XY
-    lw t5 0(t5) # carregar o x da câmera em t5
-    addi t5 t5 144
-    ble t3 t5 LET_IT_ALIVE
-    addi t5 t5 48
-    bge t3 t5 LET_IT_ALIVE
+    la t2 INVENTORY
+    lw t2 0(t2)
+    beqz t2 SKIP_ADD_WEAPON_RANGE
+
+    la t0 WEAPON_RANGE
+    lw t0 4(t0)
+    slli t2 t2 2
+    add t0 t0 t2
+    lw t2 0(t0)
+
+    la t0 PLAYER_DIR
+    lw t0 0(t0)
+    bnez t0 CHECK_HIT_LEFT_X
+
+    SKIP_ADD_WEAPON_RANGE:
+        mv t3 t1
+        la t4 PLAYER_XY
+        lw t4 0(t4) # x do player
+        # checar se o inimigo está no mesmo x que o personagem
+        la t5 CAMERA_XY
+        lw t5 0(t5) # carregar o x da câmera em t5
+        addi t5 t5 144
+        addi t5 t5 48
+        add t5 t5 t2
+        bge t3 t5 LET_IT_ALIVE
+        addi t5 t5 -48
+        sub t5 t5 t2
+        addi t3 t3 24
+        ble t3 t5 LET_IT_ALIVE
+
+    j CHECK_HIT_Y
+
+    CHECK_HIT_LEFT_X:
+        sub t2 zero t2 # deixa o range negativo
+        mv a0 t2
+        li a7 1
+        ecall
+
+        mv t3 t1
+        la t4 PLAYER_XY
+        lw t4 0(t4) # x do player
+        # checar se o inimigo está no mesmo x que o personagem
+        la t5 CAMERA_XY
+        lw t5 0(t5) # carregar o x da câmera em t5
+        addi t5 t5 144
+        addi t5 t5 -48
+        add t5 t5 t2
+        bge t5 t3 LET_IT_ALIVE
+        addi t5 t5 48
+        sub t5 t5 t2
+        sub t5 t5 t2
+        addi t3 t3 24
+        ble t5 t3 LET_IT_ALIVE
 
     CHECK_HIT_Y:
+    la t0 ENEMY_XY
+    # deslocar ponteiro de inimigo
+    slli t1 t6 3
+    add t0 t0 t1
+
     # se o inimigo estiver no mesmo x que o personagem, checar se ele stá no mesmo y
-    lw t2 4(t0)
+    lw t2 4(t0) # l1.y
     mv t3 t2
     la t4 PLAYER_XY
     lw t5 4(t4)
 
-    ble t3 t5 KILL_ENEMY
+    addi t5 t5 48
+    ble t5 t3 KILL_ENEMY
+    addi t5 t5 -48
     addi t3 t2 48
-    bge t3 t5 KILL_ENEMY
+    ble t5 t3 KILL_ENEMY
     j LET_IT_ALIVE
     KILL_ENEMY:
         # causar dano

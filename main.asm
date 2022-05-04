@@ -41,7 +41,7 @@ ATTACK_FRAMES: 0
 # 0 -> unnarmed
 # 1 -> alucard_sword
 DAMAGE: -6, -20
-WEAPON_RANGE: 16, 48
+WEAPON_RANGE: 16, 64
 # ==========
 # Inventory
 # ==========

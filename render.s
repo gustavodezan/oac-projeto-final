@@ -178,7 +178,14 @@ RENDER_PROCCESS:
 	li t1 0
 	blt s1 t1 AFTER_WEAPON_RENDER
 	la a0 alucard_sword
-	li a1 44000
+	#li a1 44000
+	la t0 PLAYER_XY
+	lw t0 4(t0)
+	addi t0 t0 -16
+	li t1 320
+	mul t0 t0 t1
+	addi a1 t0 160
+
     li a2 80
 	addi t0 s1 0
 	mul a2 a2 t0
@@ -194,8 +201,15 @@ RENDER_PROCCESS:
     call RENDER_ON_CAMERA
     j AFTER_WEAPON_RENDER
     RENDER_WEAPON_INVERT:
-	# sei la... resolveu :)
-	li a1 46560
+	#li a1 46560
+	la t0 PLAYER_XY
+	lw t0 4(t0)
+	addi t0 t0 -16
+	li t1 320
+	mul t0 t0 t1
+	addi a1 t0 160
+
+	addi a1 a1 2560
 	addi a1 a1 -56
 	li a2 80
 	addi t0 s1 -1
@@ -244,6 +258,7 @@ RENDER_PROCCESS:
 .data
 .include "./assets/entrance.s"
 .include "./assets/prologue.s"
+.include "./assets/entrance_pedra_top.s"
 .include "./assets/alucard_hit_weapon.s"
 .include "./assets/RichterBelmont.s"
 .include "./assets/teste_enemy.s"
