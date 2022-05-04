@@ -346,8 +346,15 @@ RENDER_PROCCESS:
 .include "./assets/alucard_down.s"
 .include "./assets/alucard_sword.s"
 .include "./assets/health_bar.s"
-.include "./assets/morcego.s"
+.include "./assets/npc.s"
 .include "./assets/python.s"
+.include "./assets/dialogo1.s"
+.include "./assets/dialogo2.s"
+.include "./assets/dialogo3.s"
+
+
+
+.include "./assets/morcego.s"
 
 # precisa ficar em último -> não sei o porquê :)
 .include "./assets/camera.s"

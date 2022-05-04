@@ -100,28 +100,16 @@ INPUT: 0,0 # input and last input
 .eqv r 114
 .eqv l 108
 
+SCENE_LOOP: 0
+
+TAMANHO: 44
+NOTAS: .word 77,130,76,130,73,130,72,130,73,130,72,130,71,130,73,130,72,391,67,391,67,130,72,130,77,130,76,130,73,130,72,130,71,130,69,130,79,130,77,130,76,261,77,261,79,261,79,130,82,130,83,130,82,130,79,130,77,130,79,130,77,130,79,130,82,130,79,391,72,391,72,130,74,130,76,391,77,391,81,261,79,261,74,261,73,261,67,261
+
 # BreakLine debug
 
 NUM_LOOPS: 4
 BL: .string "\n"
 SPACE: .string " "
-.text
-# -----------------
-# Game Start Setup
-# -----------------
-GAME_FIRST_INIT: # and reset
-la s0 alucard_idle # carregar o valor de "sprite idle"
-li s1 0
-li s3 0
-li s4 -6
-li s5 -30
-
-call START_GAME
-
-.data
-TAMANHO: 44
-NOTAS: .word 77,130,76,130,73,130,72,130,73,130,72,130,71,130,73,130,72,391,67,391,67,130,72,130,77,130,76,130,73,130,72,130,71,130,69,130,79,130,77,130,76,261,77,261,79,261,79,130,82,130,83,130,82,130,79,130,77,130,79,130,77,130,79,130,82,130,79,391,72,391,72,130,74,130,76,391,77,391,81,261,79,261,74,261,73,261,67,261
-
 .text
 # Victory music
 	li a2 7
@@ -137,6 +125,118 @@ NOTAS: .word 77,130,76,130,73,130,72,130,73,130,72,130,71,130,73,130,72,391,67,3
 	addi t1 t1 1
 	ecall
 	blt t1 t0 LOOP_MUSICA
+
+# -----------------
+# Game Start Setup
+# -----------------
+
+# ---------
+# HISTÓRIA
+# ---------
+# RENDER BELMONT COM O LAMAR
+
+li s7 3
+li s6 0
+RENDER_SCENE_LOOP:
+la a0 prologue
+lw t0 0(a0)
+li a1 0
+li a2 310
+li a3 960
+la a4 camera
+addi a4 a4 8
+call RENDER_ON_CAMERA_INVERT
+
+la t2 prologue
+lw t2 0(t2)
+la a0 RichterBelmont
+li t0 50
+mul t0 t0 t2
+addi a1 t0 240
+
+li a2 0
+li a3 24
+la a4 camera
+addi a4 a4 8
+call RENDER_ON_CAMERA_INVERT
+
+la a0 npc
+la t2 prologue
+lw t2 0(t2)
+li t0 43
+mul t0 t0 t2
+addi a1 t0 150
+li a2 0
+li a3 48
+la a4 camera
+addi a4 a4 8
+call RENDER_ON_CAMERA_INVERT
+
+
+beqz s6 DIALOGO1
+li t0 1
+beq t0 s6 DIALOGO2
+li t0 2
+beq t0 s6 DIALOGO3
+
+DIALOGO3:
+la a0 dialogo3
+j RENDER_SCENE
+
+DIALOGO2:
+la a0 dialogo2
+j RENDER_SCENE
+
+DIALOGO1:
+la a0 dialogo1
+j RENDER_SCENE
+
+RENDER_SCENE:
+la t2 prologue
+lw t2 0(t2)
+li t0 -10
+mul t0 t0 t2
+addi a1 t0 10
+li a2 0
+li a3 320
+la a4 camera
+addi a4 a4 8
+call RENDER_ON_CAMERA
+
+# RENDER CAM IMG
+la a0 camera
+li a1 0
+li a2 0
+li a3 320
+call RENDER
+
+li a7 32
+li a0 2000
+ecall
+
+INPUT_LOOP_SCENE:
+    li t0, MMIO_set # ready bit MMIO
+    lb t1,(t0)
+bnez t1 INPUT_LOOP_SCENE # wait time enquanto ready bit == 0
+
+li s7 3
+
+la t0 SCENE_LOOP
+lw s6 0(t0)
+addi s6 s6 1
+sw s6 0(t0)
+bgt s6 s7 GAME_FIRST_INIT
+j RENDER_SCENE_LOOP
+
+GAME_FIRST_INIT: # and reset
+la s0 alucard_idle # carregar o valor de "sprite idle"
+li s1 0
+li s3 0
+li s4 -6
+li s5 -30
+
+call START_GAME
+
 # --------------------------------------
 # Dividir o game loop em menu e in-game
 # --------------------------------------
