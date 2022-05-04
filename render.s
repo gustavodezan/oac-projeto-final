@@ -220,6 +220,44 @@ RENDER_PROCCESS:
     call RENDER_ON_CAMERA_INVERT
     AFTER_WEAPON_RENDER:
 
+	# Render Power
+	# check if power exists
+	la t0 POWER
+	lw t0 0(t0)
+	beqz t0 THERES_NO_POWER_HERE
+
+	la a0 python
+	li a1 0
+
+	la t0 POWER
+	lw t0 8(t0)
+	
+	li t1 320
+	mul t0 t0 t1
+
+	la t2 POWER
+	lw t2 4(t2)
+
+	add t0 t0 t2
+
+	# la t1 CAMERA_XY
+	# lw t1 0(t1)
+	# sub t0 t0 t1
+
+	# bgez t0 CONTINUE_POWER_PRINT
+	# 	sub t0 zero t0
+	CONTINUE_POWER_PRINT:
+
+	addi a1 t0 16
+
+	li a2 0
+	li a3 16
+	la a4 camera
+    addi a4 a4 8
+	call RENDER_ON_CAMERA
+
+	THERES_NO_POWER_HERE:
+
     # Player
     mv a0 s0
     la t0 PLAYER_XY
@@ -249,6 +287,43 @@ RENDER_PROCCESS:
 
     AFTER_PLAYER_RENDER:
 
+
+	la a0 health_bar
+	li a1 0
+	la t0 PLAYER_HP
+	lw t2 0(t0) # atual
+	li t1 60
+	li a2 0
+	bgt t2 t1 NEXT_HP_STAGE
+		li a2 0
+
+	NEXT_HP_STAGE: 
+	li t1 50
+	bgt t2 t1 NEXT_HP_STAGE2
+		li a2 104
+	NEXT_HP_STAGE2:
+	li t1 40
+	bgt t2 t1 NEXT_HP_STAGE3
+		li a2 208
+	NEXT_HP_STAGE3: 
+	li t1 30
+	bgt t2 t1 NEXT_HP_STAGE4
+		li a2 312
+	NEXT_HP_STAGE4: 
+	li t1 10
+	bgt t2 t1 NEXT_HP_STAGE5
+		li a2 416
+	NEXT_HP_STAGE5: 
+	li t1 0
+	bgt t2 t1 NEXT_HP_STAGE6
+		li a2 520
+	NEXT_HP_STAGE6:
+    li a3 104
+    #lw a3 0(a0)
+    la a4 camera
+    addi a4 a4 8
+    call RENDER_ON_CAMERA
+
     # RENDER CAM IMG
     la a0 camera
 	li a1 0
@@ -270,7 +345,9 @@ RENDER_PROCCESS:
 .include "./assets/alucard_idle.s"
 .include "./assets/alucard_down.s"
 .include "./assets/alucard_sword.s"
+.include "./assets/health_bar.s"
 .include "./assets/morcego.s"
+.include "./assets/python.s"
 
 # precisa ficar em último -> não sei o porquê :)
 .include "./assets/camera.s"

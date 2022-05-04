@@ -16,8 +16,9 @@
 # 2 -> walking
 # 3 -> down
 # 4 -> sword
+# 5 -> power
 # STATE_MACHINE: 0
-MAX_FRAMES_STATE: 8, 4, 16, 10, 8
+MAX_FRAMES_STATE: 8, 4, 16, 10, 8, 4
 # 8, 4, 16, 10
 
 # ------------
@@ -33,6 +34,8 @@ PLAYER_HP: 70,70
 PLAYER_DIR: .word 0
 PLAYER_IDLE_FRAMES: 0
 
+# exist, x (camera), y (player)
+POWER: 0, 0, 0, 0
 
 # player_attack duration
 ATTACK_FRAMES: 0
@@ -59,7 +62,7 @@ GVT: .float 0.5
 CAMERA_XY: 0,0
 
 # Maps
-ACTUAL_MAP: 0, 2 # 4(ACUTAL_MAP) -> total num maps
+ACTUAL_MAP: 0, 3 # 4(ACUTAL_MAP) -> total num maps
 MAPS: entrance, entrance_pedra_top
 MAPS_COL: entrance_col, entrance_pedra_top_col
 
@@ -73,6 +76,7 @@ ENEMY_TYPE0: 0,0,0,0,0,0,0,0,0,0,0,0
 NUM_ENEMIES0: 3
 ENEMY_HURT0: 0,0,0,0,0,0,0,0,0,0,0,0
 ENEMY_FRAME0: 0,4,0,4,0,4,0,4,0,4,0,4,0,4,0,4,0,4
+ENEMY_DAMAGE0: 0,0,0,0,0,0,0,0,0,0,0,0
 
 ENEMY_XY: 320, 120, 320 140 , 640, 153
 ENEMY_IS_ALIVE: 1,1,1,1,1,1,1,1,1
@@ -81,7 +85,7 @@ NUM_ENEMIES: 4
 ENEMY_TYPE: 0,0,0,0,0,0,0,0,0,0,0,0
 ENEMY_HURT: 0,0,0,0,0,0,0,0,0,0,0,0
 ENEMY_FRAME: 0,4,0,4,0,4,0,4,0,4,0,4,0,4,0,4,0,4
-
+ENEMY_DAMAGE: 0,0,0,0,0,0,0,0,0,0,0,0
 # Input
 INPUT: 0,0 # input and last input
 .eqv MMIO_add 0xff200004 # Data (ASCII value)
@@ -93,6 +97,8 @@ INPUT: 0,0 # input and last input
 .eqv space 32
 .eqv k 107
 .eqv j_key 106
+.eqv r 114
+.eqv l 108
 
 # BreakLine debug
 
@@ -103,12 +109,34 @@ SPACE: .string " "
 # -----------------
 # Game Start Setup
 # -----------------
+GAME_FIRST_INIT: # and reset
 la s0 alucard_idle # carregar o valor de "sprite idle"
 li s1 0
 li s3 0
 li s4 -6
+li s5 -30
 
 call START_GAME
+
+.data
+TAMANHO: 44
+NOTAS: .word 77,130,76,130,73,130,72,130,73,130,72,130,71,130,73,130,72,391,67,391,67,130,72,130,77,130,76,130,73,130,72,130,71,130,69,130,79,130,77,130,76,261,77,261,79,261,79,130,82,130,83,130,82,130,79,130,77,130,79,130,77,130,79,130,82,130,79,391,72,391,72,130,74,130,76,391,77,391,81,261,79,261,74,261,73,261,67,261
+
+.text
+# Victory music
+	li a2 7
+	li a3 60
+	li t0 10
+	li t1 0
+	la t2 NOTAS
+	li a7 33
+	LOOP_MUSICA:
+	lw a0 0(t2)
+	lw a1 4(t2)
+	addi t2 t2 8
+	addi t1 t1 1
+	ecall
+	blt t1 t0 LOOP_MUSICA
 # --------------------------------------
 # Dividir o game loop em menu e in-game
 # --------------------------------------
@@ -119,6 +147,14 @@ call START_GAME
 #     li a3 960
 # call RENDER
 GAME_LOOP:
+    la t0 PLAYER_HP
+    lw t0 0(t0)
+    blez t0 _GAME_OVER
+    j KEEP_MOVING
+    _GAME_OVER:
+        j GAME_OVER
+
+    KEEP_MOVING:
     # sleep?
     li a7 32
     li a0 10
@@ -206,6 +242,35 @@ GAME_LOOP:
     #j ENEMY_PROCEDURE
     AFTER_ENEMY_PROCEDURE:
 
+
+    # check if it should destroy your poower
+    STOP_YOURSELF:
+        la t0 POWER
+        lw t1 0(t0)
+        beqz t1 WORLD_PEACE
+            lw t2 4(t0)
+            la t3 CAMERA_XY
+            lw t3 0(t3)
+            
+            ble t2 t3 GIVEUP_YOUR_POWER
+
+            addi t2 t2 16
+            addi t3 t3 290
+            bgt t2 t3 GIVEUP_YOUR_POWER
+
+            j WORLD_PEACE
+
+        GIVEUP_YOUR_POWER:
+            sw zero 0(t0) # poder não existe
+
+    WORLD_PEACE:
+
+    la t0 POWER
+    lw t0 0(t0)
+    beqz t0 AFTER_POWER
+    j POWER_PROC
+    AFTER_POWER:
+
     # Idle Animation
     # mv t0 s3
     # li t1 0
@@ -254,6 +319,11 @@ GAME_LOOP:
     AFTER_CHECK_IF_NEXT_MAP:
 
 j GAME_LOOP
+
+GAME_OVER:
+    li a7 10
+    ecall
+
 .include "./render.s"
 .include "./movimentacao.s"
 .include "./state_machine.s"
@@ -261,3 +331,5 @@ j GAME_LOOP
 .include "./enemy.s"
 .include "./gravity.s"
 .include "./map_handler.s"
+.include "./power.s"
+.include "./sons_ataques.s"

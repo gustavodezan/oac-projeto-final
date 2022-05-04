@@ -24,7 +24,7 @@ CHECK_IF_NEXT_MAP:
         la t1 CAMERA_XY
         lw t1 0(t1)
         addi t1 t1 144
-        li t2 1900
+        li t2 1850
         bge t1 t2 NEXT_MAP
 
     CHECK_MAP1:
@@ -38,8 +38,10 @@ NEXT_MAP:
     sw t2 0(t1)
     # set up next map properties
     la t0 CAMERA_XY
-    li t1 20
+    li t1 180
     sw t1 0(t0)
+    li t1 140
+    sw t1 4(t0)
 
     SKIP_NEXT_MAP_PROC:
 j GAME_LOOP
@@ -66,6 +68,13 @@ START_GAME:
         
         la t2 ENEMY_TYPE
         la t3 ENEMY_TYPE0
+        add t3 t3 t4
+        add t2 t2 t4
+        lw t3 0(t3)
+        sw t3 0(t2)
+
+        la t2 ENEMY_DAMAGE
+        la t3 ENEMY_DAMAGE0
         add t3 t3 t4
         add t2 t2 t4
         lw t3 0(t3)

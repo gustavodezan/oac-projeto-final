@@ -255,7 +255,7 @@ NORMAL_JUMP:
     la a0 INPUT
     lw t0, 0(a0)
     li t1 s
-    bne t0, t1, SKIP_INPUT
+    bne t0, t1, NEXT_L
 
     # procedimento de abaixar
     la s0 alucard_down
@@ -265,6 +265,80 @@ NORMAL_JUMP:
     li s3 3
 
     #call STATE_DOWN
+
+    NEXT_L: # power
+    la a0 INPUT
+        lw t0, 0(a0)
+        li t1 l
+    bne t0, t1, NEXT_1
+        la t0 POWER
+        lw t0 0(t0)
+        bnez t0 YOU_CANT_BE_SO_POWERFULL
+        la s0 alucard_punch
+        la t0 POWER
+        li t1 1
+        sw t1 0(t0)
+        
+         # definir direção
+        la t1 PLAYER_DIR
+        lw t2 0(t1)
+        beqz t2 POWER_DIR
+            li t1 -1
+            sw t1 12(t0)
+            j END_POWER_DIR_CREATE
+
+        POWER_DIR:
+            li t1 1
+            sw t1 12(t0)
+
+        END_POWER_DIR_CREATE:
+
+        # definir x do poder
+        la t1 CAMERA_XY
+        lw t1 0(t1)
+        li t2 0
+        li t4 0
+        addi t4 t4 144
+        # addi t2 t2 48
+
+        # lw t3 12(t0)
+        # mul t2 t2 t3
+
+        # add t1 t1 t2
+        add t1 t1 t4
+        sw t1 4(t0)
+
+        # definir y do poder
+        la t1 PLAYER_XY
+        lw t1 4(t1)
+        sw t1 8(t0)
+
+        YOU_CANT_BE_SO_POWERFULL:
+
+    NEXT_1:
+    la a0 INPUT
+        lw t0, 0(a0)
+        li t1 49
+    bne t0, t1, NEXT_0
+        li t0 1
+        la t1 INVENTORY
+        sw t0 0(t1)
+
+    NEXT_0:
+    la a0 INPUT
+        lw t0, 0(a0)
+        li t1 48
+    bne t0, t1, NEXT_R
+        li t0 0
+        la t1 INVENTORY
+        sw t0 0(t1)
+
+    NEXT_R:
+        la a0 INPUT
+        lw t0, 0(a0)
+        li t1 r
+    bne t0, t1, SKIP_INPUT
+        j GAME_FIRST_INIT
 
     SKIP_INPUT:
     j  END_CHECK_INPUT

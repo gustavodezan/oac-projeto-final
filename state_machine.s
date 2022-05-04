@@ -39,7 +39,11 @@ STATE_FREE:
         li t3 1
         bne t3 s3 END_STATE_HANDLE
         call STATE_ATTACK
+
+        j END_STATE_HANDLE
+
     END_STATE_HANDLE:
+
 
 j AFTER_STATE_FREE
 
@@ -192,6 +196,9 @@ STATE_ATTACK:
         add t0 t0 t1
         lw t2 0(t0)
         ble t2 zero LET_IT_ALIVE
+
+        j SOUND_HIT
+        AFTER_SOUND_HIT:
 
         # add enemy to hurt list and skip if its already hurt
         # remember to reset that list after the state_atack

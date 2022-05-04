@@ -1,0 +1,9 @@
+.data
+
+.text
+	li  a7, 31 
+	li a0, 61
+	li a1, 1750      
+    	li a2, 102
+    	li a3, 100
+    	ecall
